@@ -22,7 +22,7 @@ cat topsecret.txt
 # Delete the decoded plaintext key
 rm datakey_plaintext_*
 
-# Get the plaintext key from the encrypted key
+# Use KMS to decode the encrypted Data Key and save it to a file
 aws kms decrypt --ciphertext-blob fileb:///home/ec2-user/datakey_ciphertext_decoded.txt --region us-east-1
 echo "PLAINTEXT_FROM_PREV_COMMAND" > ./datakey_plaintext_base64.txt
 
