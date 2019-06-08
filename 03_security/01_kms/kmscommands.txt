@@ -1,34 +1,33 @@
+# Create the CMK
 aws kms create-key --description "SAPRO" --region us-east-1
-
 aws kms create-alias --target-key-id XXX --alias-name "alias/saprokey" --region us-east-1
 
-
+# Create the Data Keys
 aws kms generate-data-key --key-id alias/saprokey --key-spec AES_256 --region us-east-1
 
-
+# Copy the encrypted key and the plaintext keys to separate files
 echo "CIPHERTEXT_FROM_PREV_COMMAND"  > datakey_ciphertext_base64.txt
-
 echo "PLAINTEXT_FROM_PREV_COMMAND" > datakey_plaintext_base64.txt
 
+# Decode the encrypted and plaintext key
 cat datakey_plaintext_base64.txt | base64 --decode > datakey_plaintext_decoded.txt
-
-echo "Pinehead is amazing"  | openssl enc -e -aes256 -k fileb://home/ec2-user/datakey_plaintext_decoded.txt > ~/topsecret.txt
-
-
-cat topsecret.txt
-
-
-rm datakey_plaintext_*
-
-
 cat datakey_ciphertext_base64.txt | base64 --decode > ./datakey_ciphertext_decoded.txt
 
+# Encrypt the sample text using the decoded plaintext key
+echo "Pinehead is amazing"  | openssl enc -e -aes256 -k fileb://home/ec2-user/datakey_plaintext_decoded.txt > ~/topsecret.txt
 
+# Check the encrypted text
+cat topsecret.txt
+
+# Delete the decoded plaintext key
+rm datakey_plaintext_*
+
+# Get the plaintext key from the encrypted key
 aws kms decrypt --ciphertext-blob fileb:///home/ec2-user/datakey_ciphertext_decoded.txt --region us-east-1
-
-
 echo "PLAINTEXT_FROM_PREV_COMMAND" > ./datakey_plaintext_base64.txt
 
+# Decode the key
 cat ./datakey_plaintext_base64.txt | base64 --decode > ./datakey_plaintext_decoded.txt
 
+# Decrypt the encrypted text file using the decrypted key
 cat ./topsecret.txt | openssl enc -d -aes256 -k fileb://home/ec2-user/datakey_plaintext_decoded.txt
